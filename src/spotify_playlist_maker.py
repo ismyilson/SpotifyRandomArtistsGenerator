@@ -24,6 +24,10 @@ def run():
     spotify_ids = []
     for row in results:
         tracks = spotify.artist_top_tracks(row['spotify_id'])['tracks']
+        if len(tracks) == 0:
+            album = spotify.artist_albums(row['spotify_id'])['items'][0]
+            tracks = spotify.album_tracks(album['id'])['items']
+
         top_tracks_ids.append(tracks[0]['id'])
         spotify_ids.append(row['spotify_id'])
     
