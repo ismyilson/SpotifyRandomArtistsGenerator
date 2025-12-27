@@ -43,7 +43,7 @@ class CloudflareManager:
     def delete_from_processing(self, songs):
         while len(songs):
             data_per_query = self.BULK_MAX_PER_QUERY if len(songs) >= self.BULK_MAX_PER_QUERY else len(songs)
-            query = f'delete from processing where song_fullname in ({"?, "*(len(data_per_query)-1)}?)'
+            query = f'delete from processing where song_fullname in ({"?, "*(data_per_query-1)}?)'
             self._do_query(query, params=songs[:data_per_query])
             songs = songs[data_per_query:]
 
@@ -69,7 +69,7 @@ class CloudflareManager:
     def bulk_set_artists_used_for_recommend(self, spotify_ids):
         while len(spotify_ids) > 0:
             data_per_query = self.BULK_MAX_PER_QUERY if len(spotify_ids) >= self.BULK_MAX_PER_QUERY else len(spotify_ids)
-            query = f'update artists set used_for_recommended = 1 where spotify_id in ({"?, "*(len(data_per_query)-1)}?)'
+            query = f'update artists set used_for_recommended = 1 where spotify_id in ({"?, "*(data_per_query-1)}?)'
             self._do_query(query, params=spotify_ids[:data_per_query])
             spotify_ids = spotify_ids[data_per_query:]
     

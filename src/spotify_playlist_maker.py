@@ -1,7 +1,7 @@
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
-from cloudflare_services import cloudflare_manager
+from services.cloudflare_services import cloudflare_manager
 
 PLAYLIST_ID = '1wVT9oPaOYQfLxMMdC2EJg'
 

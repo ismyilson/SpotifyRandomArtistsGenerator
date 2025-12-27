@@ -3,7 +3,7 @@ import time
 import spotipy
 from spotipy.oauth2 import SpotifyClientCredentials
 
-from cloudflare_services import cloudflare_manager
+from services.cloudflare_services import cloudflare_manager
 
 MAX_REQUESTS = 10
 
@@ -51,7 +51,12 @@ def run():
         cloudflare_manager.delete_from_processing(songs_to_remove)
     
     print(f'Run finished in {time.time() - time_start} seconds')
+    return len(songs_to_remove)
 
 
 if __name__ == '__main__':
-    run()
+    processed = -1
+    while processed != 0:
+        processed = run()
+    
+    print('No more to process')
