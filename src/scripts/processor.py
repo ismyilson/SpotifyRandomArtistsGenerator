@@ -1,4 +1,8 @@
 import time
+import logging
+
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
 from services import (
@@ -12,14 +16,31 @@ from spotipy.oauth2 import SpotifyClientCredentials
 
 MAX_REQUESTS = 10
 
+handler = RotatingFileHandler(
+    Path(__file__).parent / 'processor.log', 
+    maxBytes=2 * 1024 * 1024, 
+    backupCount=5
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        handler,
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
+
 
 def recommendation_finder():
     artists = artist_services.get_artists_used_for_recommended(False)
     if not artists:
-        print(f'No artists found to use for recommended')
+        logger.info(f'No artists found to use for recommended')
         return
     
-    print(f'Processing {len(artists)} artists not used for recommended')
+    logger.info(f'Processing {len(artists)} artists not used for recommended')
 
     reqs = 0
     for artist in artists:
@@ -29,7 +50,7 @@ def recommendation_finder():
             continue
 
         recommended_songs = recommended_songs['content']
-        print(f'Found {len(recommended_songs)} songs for artist "{artist.name}"')
+        logger.info(f'Found {len(recommended_songs)} songs for artist "{artist.name}"')
         for song in recommended_songs:
             spotify_song_id = song['href']
             song_name = song['trackTitle']
@@ -46,7 +67,7 @@ def recommendation_finder():
                     continue
 
                 if artist_services.artist_exists(spotify_artist_id):
-                    print(f'Skipping artist "{song_artist["name"]}", Spotify ID already in database')
+                    logger.info(f'Skipping artist "{song_artist["name"]}", Spotify ID already in database')
                     continue
                 
                 artist_services.add_artist(
@@ -55,12 +76,12 @@ def recommendation_finder():
                     song_name,
                     spotify_song_id
                 )
-                print(f'Added "{song_artist["name"]}" to database')
+                logger.info(f'Added "{song_artist["name"]}" to database')
         
         artist.used_for_recommended = True
         
         if reqs >= MAX_REQUESTS:
-            print(f'Waiting 1.5 seconds for Reccobeats requests rate-limit')
+            logger.info(f'Waiting 1.5 seconds for Reccobeats requests rate-limit')
             time.sleep(1.5)
             reqs = 0
     
@@ -75,18 +96,18 @@ def process():
     processing_songs = processing_song_services.get_processing_songs(50)
 
     if not processing_songs:
-        print('No songs to process')
+        logger.info('No songs to process')
         return 0
 
     reqs = 0
     for song in processing_songs:
-        print(f'Processing "{song.song_fullname}"')
+        logger.info(f'Processing "{song.song_fullname}"')
 
         result = spotify.search(song.song_fullname)['tracks']['items']
         reqs += 1
 
         if len(result) == 0:
-            print(f'Skipping "{song.song_fullname}", cant find on Spotify')
+            logger.info(f'Skipping "{song.song_fullname}", cant find on Spotify')
             continue
 
         result = result[0]
@@ -97,14 +118,14 @@ def process():
             artist_name = artist_data['name']
 
             if artist_services.artist_exists(spotify_id):
-                print(f'Skipping artist "{artist_name}", Spotify ID already in database')
+                logger.info(f'Skipping artist "{artist_name}", Spotify ID already in database')
                 continue
 
-            print(f'Adding artist "{artist_name}" to database')
+            logger.info(f'Adding artist "{artist_name}" to database')
             artist_services.add_artist(spotify_id, artist_name, song.song_fullname, song_id)
         
         if reqs >= MAX_REQUESTS:
-            print(f'Waiting 1.5 seconds for Spotify requests rate-limit')
+            logger.info(f'Waiting 1.5 seconds for Spotify requests rate-limit')
             time.sleep(1.5)
             reqs = 0
     
@@ -123,7 +144,7 @@ def run():
 
     recommendation_finder()
 
-    print(f'Run finished in {time.time() - time_start} seconds')
+    logger.info(f'Run finished in {time.time() - time_start} seconds')
 
 
 if __name__ == '__main__':

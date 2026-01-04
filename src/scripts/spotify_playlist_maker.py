@@ -1,4 +1,8 @@
 import time
+import logging
+
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 
 from config import PLAYLIST_ID
 from services import (
@@ -9,6 +13,23 @@ import spotipy
 from spotipy.oauth2 import SpotifyOAuth
 
 MAX_TRIES = 5
+
+handler = RotatingFileHandler(
+    Path(__file__).parent / 'spotify_playlist_maker.log', 
+    maxBytes=2 * 1024 * 1024, 
+    backupCount=5
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        handler,
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 
 def run():
@@ -22,12 +43,12 @@ def run():
 
     artists = artist_services.get_artists_used_for_playlist(False, limit = 15)
     if not artists:
-        print(f'No results')
+        logger.info(f'No results')
         return False
     
     top_tracks_ids = []
     for artist in artists:
-        print(f'Got artist: "{artist.name}", grabbing top songs')
+        logger.info(f'Got artist: "{artist.name}", grabbing top songs')
 
         tracks = spotify.artist_top_tracks(artist.spotify_id)['tracks']
         if len(tracks) == 0:
@@ -35,7 +56,7 @@ def run():
                 album = spotify.artist_albums(artist.spotify_id)['items'][0]
                 tracks = spotify.album_tracks(album['id'])['items']
             except IndexError as e:
-                print(f'Broken artist "{artist.name}", no songs? Deleting artist')
+                logger.info(f'Broken artist "{artist.name}", no songs? Deleting artist')
                 artist_services.delete_artist(artist.id)
                 return False
 
@@ -43,7 +64,7 @@ def run():
         while tracks[idx]['id'] in top_tracks_ids:
             idx += 1
 
-        print(f'Using track: "{tracks[idx]['id']}"')
+        logger.info(f'Using track: "{tracks[idx]['id']}"')
         top_tracks_ids.append(tracks[idx]['id'])
     
     spotify.playlist_add_items(PLAYLIST_ID, top_tracks_ids)
@@ -63,9 +84,9 @@ if __name__ == '__main__':
         tries += 1
 
         if tries >= MAX_TRIES:
-            print(f'Run failed more than {MAX_TRIES} times, aborting')
+            logger.info(f'Run failed more than {MAX_TRIES} times, aborting')
             exit(1)
 
-        print(f'Run failed, retrying..')
+        logger.info(f'Run failed, retrying..')
 
-    print(f'Run finished in {time.time() - time_start} seconds')
+    logger.info(f'Run finished in {time.time() - time_start} seconds')

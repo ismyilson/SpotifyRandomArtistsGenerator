@@ -1,17 +1,35 @@
 import time
+import logging
 
+from logging.handlers import RotatingFileHandler
+from pathlib import Path
 from services import (
     kworb_services,
     processing_song_services,
 )
 from models.processing_song import ProcessingSong
 
-MAX_REQUESTS = 10
+handler = RotatingFileHandler(
+    Path(__file__).parent / 'artist_discoverer.log', 
+    maxBytes=2 * 1024 * 1024, 
+    backupCount=5
+)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        handler,
+        logging.StreamHandler()
+    ]
+)
+
+logger = logging.getLogger(__name__)
 
 
 def run_song_finder():
     songs_names = kworb_services.get_kworb_songs()
-    print(f'Processing {len(songs_names)} songs')
+    logger.info(f'Found {len(songs_names)} songs')
 
     songs = [
         ProcessingSong(
@@ -26,7 +44,7 @@ def run():
 
     run_song_finder()
 
-    print(f'Run finished in {time.time() - time_start} seconds')
+    logger.info(f'Run finished in {time.time() - time_start} seconds')
 
 
 if __name__ == '__main__':
