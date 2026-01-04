@@ -1,5 +1,5 @@
 from models.artist import Artist
-from sqlmodel import select
+from sqlmodel import select, func
 from database import get_session
 
 
@@ -67,7 +67,7 @@ def get_artists(limit = 10):
 
 def get_artists_used_for_playlist(used, limit = 15):
     with get_session() as session:
-        stmt = select(Artist).where(Artist.used_for_playlist == used).limit(limit)
+        stmt = select(Artist).where(Artist.used_for_playlist == used).order_by(func.random()).limit(limit)
         artists = session.exec(stmt).all()
     
     return artists
@@ -84,3 +84,13 @@ def get_artists_used_for_recommended(used, limit = 10):
 def artist_exists(spotify_id):
     artist = get_by_spotify_id(spotify_id)
     return not (artist is None)
+
+
+def delete_artist(id):
+    artist = get_by_id(id)
+    if not artist:
+        return
+
+    with get_session() as session:
+        session.delete(artist)
+        session.commit()
