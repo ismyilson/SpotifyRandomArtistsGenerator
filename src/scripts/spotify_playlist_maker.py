@@ -33,7 +33,7 @@ logger = logging.getLogger(__name__)
 
 
 def run():
-    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=['playlist-modify-public']))
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=['playlist-modify-public'], open_browser=False))
 
     playlist_data = spotify.playlist_items(PLAYLIST_ID)
     track_list = [item['track']['id'] for item in playlist_data['items']]
