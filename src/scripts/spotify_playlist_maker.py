@@ -1,13 +1,12 @@
 import time
 
+from config import PLAYLIST_ID
 from services import (
     artist_services
 )
 
 import spotipy
 from spotipy.oauth2 import SpotifyOAuth
-
-PLAYLIST_ID = '1wVT9oPaOYQfLxMMdC2EJg'
 
 MAX_TRIES = 5
 

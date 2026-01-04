@@ -1,5 +1,6 @@
 import time
 
+from config import SPOTIPY_CLIENT_ID, SPOTIPY_CLIENT_SECRET
 from services import (
     artist_services,
     processing_song_services,
@@ -67,7 +68,10 @@ def recommendation_finder():
 
 
 def process():
-    spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials())
+    spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
+        client_id=SPOTIPY_CLIENT_ID,
+        client_secret=SPOTIPY_CLIENT_SECRET
+    ))
     processing_songs = processing_song_services.get_processing_songs(50)
 
     if not processing_songs:

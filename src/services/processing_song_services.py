@@ -1,5 +1,6 @@
 from models.processing_song import ProcessingSong
 from sqlmodel import select, delete
+from sqlalchemy.dialects.postgresql import insert
 from database import get_session
 
 
@@ -17,8 +18,11 @@ def add_processing_song(song_name):
 
 
 def bulk_add_processing_songs(processing_songs):
+    data = [song.model_dump(exclude=['id']) for song in processing_songs]
     with get_session() as session:
-        session.add_all(processing_songs)
+        stmt = insert(ProcessingSong).values(data)
+        stmt = stmt.on_conflict_do_nothing(index_elements=['song_fullname'])
+        session.exec(stmt)
         session.commit()
 
 

@@ -1,10 +1,9 @@
 import os
-
+from config import ARTIST_DATABASE_ID
 from contextlib import contextmanager
-
 from sqlmodel import Session, create_engine
 
-_engine = create_engine(os.environ.get('SPOTIFY_RANDOM_GEN_DATABASE_ID'))
+_engine = create_engine(ARTIST_DATABASE_ID)
 
 
 @contextmanager
