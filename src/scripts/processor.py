@@ -44,9 +44,13 @@ def recommendation_finder():
 
     reqs = 0
     for artist in artists:
+        logger.info(f'Getting recommended of artist "{artist.name}"')
+
         recommended_songs = reccobeats_services.get_recommended([artist.origin_song_id])
         reqs += 1
         if not recommended_songs:
+            logger.info(f'No recommended songs found for artist "{artist.name}", skipping')
+            artist.used_for_recommended = True
             continue
 
         recommended_songs = recommended_songs['content']
