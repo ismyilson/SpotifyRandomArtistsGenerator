@@ -18,3 +18,7 @@ class Artist(SQLModel, table=True):
     origin_song_id: Optional[str] = Field(max_length=100, default=None)
     used_for_recommended: bool = Field(default=False, index=True)
     used_for_playlist: bool = Field(default=False, index=True)
+    used_for_playlist_datetime: Optional[datetime] = Field(
+        default=None,
+        sa_type=DateTime(timezone=True)
+    )

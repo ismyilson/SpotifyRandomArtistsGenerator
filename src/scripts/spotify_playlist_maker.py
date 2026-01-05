@@ -1,6 +1,8 @@
 import time
 import logging
 
+from datetime import datetime, timezone
+
 from logging.handlers import RotatingFileHandler
 from pathlib import Path
 
@@ -69,8 +71,11 @@ def run():
     
     spotify.playlist_add_items(PLAYLIST_ID, top_tracks_ids)
 
+    now = datetime.now(timezone.utc)
     for artist in artists:
         artist.used_for_playlist = True
+        artist.used_for_playlist_datetime = now
+    
     artist_services.update_artists(artists)
     
     return True
