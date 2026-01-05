@@ -75,7 +75,7 @@ def get_artists_used_for_playlist(used, limit = 15):
 
 def get_artists_used_for_recommended(used, limit = 10):
     with get_session() as session:
-        stmt = select(Artist).where(Artist.used_for_recommended == used).limit(limit)
+        stmt = select(Artist).where(Artist.used_for_recommended == used).order_by(Artist.created_at).limit(limit)
         artists = session.exec(stmt).all()
     
     return artists
