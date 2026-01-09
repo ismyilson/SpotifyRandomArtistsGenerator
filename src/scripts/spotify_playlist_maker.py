@@ -12,7 +12,7 @@ from services import (
 )
 
 import spotipy
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyOAuth, CacheFileHandler
 
 MAX_TRIES = 5
 
@@ -35,7 +35,13 @@ logger = logging.getLogger(__name__)
 
 
 def run():
-    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=['playlist-modify-public'], open_browser=False))
+    cache_file = Path(__file__).resolve().parent / '.spotify_oauth_cache'
+    cache_handler = CacheFileHandler(cache_path=cache_file)
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(
+        scope=['playlist-modify-public'],
+        open_browser=False,
+        cache_handler=cache_handler)
+    )
 
     playlist_data = spotify.playlist_items(PLAYLIST_ID)
     track_list = [item['track']['id'] for item in playlist_data['items']]

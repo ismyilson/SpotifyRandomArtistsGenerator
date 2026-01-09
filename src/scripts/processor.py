@@ -12,7 +12,7 @@ from services import (
 )
 
 import spotipy
-from spotipy.oauth2 import SpotifyClientCredentials
+from spotipy.oauth2 import SpotifyClientCredentials, CacheFileHandler
 
 MAX_REQUESTS = 10
 
@@ -93,9 +93,12 @@ def recommendation_finder():
 
 
 def process():
+    cache_file = Path(__file__).resolve().parent / '.spotify_client_cache'
+    cache_handler = CacheFileHandler(cache_path=cache_file)
     spotify = spotipy.Spotify(auth_manager=SpotifyClientCredentials(
         client_id=SPOTIPY_CLIENT_ID,
-        client_secret=SPOTIPY_CLIENT_SECRET
+        client_secret=SPOTIPY_CLIENT_SECRET,
+        cache_handler=cache_handler
     ))
     processing_songs = processing_song_services.get_processing_songs(50)
 
